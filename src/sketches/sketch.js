@@ -2,18 +2,19 @@ import p5 from "p5";
 
 export default function sketch(p) {
   const radius = 300;
-  const steps = 100;
+  const steps = 40000;
   let canvas;
   var locs = [];
   let circle = false;
   let lineSize = -20;
+  let count = 0;
 
   p.setup = () => {
     canvas = p.createCanvas(p.windowWidth, p.windowHeight);
     p.pixelDensity(0.8);
     var res = 22;
     var countX = p.ceil(p.width / res) + 19;
-    var countY = p.ceil(p.height / res) + 19;
+    var countY = 25;
 
     for (var j = 0; j < countY; j++) {
       for (var i = 0; i < countX; i++) {
@@ -70,9 +71,21 @@ export default function sketch(p) {
         false ? p.height / 2 : locs[i].y - p.mouseY
       );
       let final = calcCircle(locs[i].x, locs[i].y);
-      //locs[i].x - ((locs[i].x - final[0]) / steps) * i
+      if (circle) {
+        if (count < steps) count++;
+        if (lineSize < 1) lineSize += 0.001;
+      }
+      //locs[i].x - ((locs[i].x - (p.width - final.x)) / steps) * count
+      //locs[i].x - ((locs[i].x - final.x) / steps) * count
       p.push();
-      p.translate(...(circle ? final : [locs[i].x, locs[i].y]));
+      p.translate(
+        ...(circle
+          ? [
+              locs[i].x - ((locs[i].x - final.x) / steps) * count,
+              locs[i].y - ((locs[i].y - final.y) / steps) * count,
+            ]
+          : [locs[i].x, locs[i].y])
+      );
       p.rotate(h.heading());
       p.line(0, 0, 0, lineSize);
       p.pop();
@@ -86,10 +99,10 @@ export default function sketch(p) {
   const calcCircle = (x, y) => {
     const teta = Math.atan((x - p.width / 2) / (y - p.height / 2));
     const direction = x > p.width / 2 ? 1 : -1;
-    return [
-      direction * radius * Math.cos(teta) + p.width / 2,
-      direction * radius * Math.sin(teta) + p.height / 2,
-    ];
+    return {
+      x: direction * radius * Math.cos(teta) + p.width / 2,
+      y: direction * radius * Math.sin(teta) + p.height / 2,
+    };
   };
 
   p.myCustomRedrawAccordingToNewPropsHandler = (newProps) => {
@@ -97,7 +110,6 @@ export default function sketch(p) {
       //Make sure the canvas has been created
       //p.fill(newProps.color);
       circle = true;
-      lineSize = 1;
     }
   };
 }
